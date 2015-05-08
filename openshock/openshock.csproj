@@ -44,9 +44,23 @@
     <Compile Include="Windows.cs" />
     <Compile Include="Shell.cs" />
     <Compile Include="GitIntegration.cs" />
+    <Compile Include="Scanner.cs" />
+    <Compile Include="Tokens\TK_RDIR.cs" />
+    <Compile Include="Tokens\Token.cs" />
+    <Compile Include="Tokens\TK_RDIR_A.cs" />
+    <Compile Include="Tokens\TK_IDENT.cs" />
+    <Compile Include="Tokens\TK_PIPE.cs" />
+    <Compile Include="Parser.cs" />
+    <Compile Include="AST\AstNode.cs" />
+    <Compile Include="AST\AstNodeType.cs" />
+    <Compile Include="Command.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Tokens\" />
+    <Folder Include="AST\" />
   </ItemGroup>
 </Project>

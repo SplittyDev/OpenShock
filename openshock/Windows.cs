@@ -68,16 +68,22 @@ namespace openshock
 			return string.Join (";", GetSearchPathArray ());
 		}
 
-		public static string Windowsify (this string path) {
+		public static string PureWindowsify (this string path) {
 			return path.ToLowerInvariant ()
-				.Replace (SEPARATOR_UNIX, SEPARATOR_WINDOWS)
-				.Replace ("~", HomeDirectory.ToLowerInvariant ());
+				.Replace (SEPARATOR_UNIX, SEPARATOR_WINDOWS);
+		}
+
+		public static string Windowsify (this string path) {
+			return path.PureWindowsify ().Replace ("~", HomeDirectory.PureWindowsify ());
+		}
+
+		public static string PureUnifixy (this string path) {
+			return path.ToLowerInvariant ()
+				.Replace (SEPARATOR_WINDOWS, SEPARATOR_UNIX);
 		}
 
 		public static string Unixify (this string path) {
-			return path.ToLowerInvariant ()
-				.Replace (HomeDirectory.ToLowerInvariant (), "~")
-				.Replace (SEPARATOR_WINDOWS, SEPARATOR_UNIX);
+			return path.PureUnifixy ().Replace (HomeDirectory.PureUnifixy (), "~");
 		}
 	}
 }

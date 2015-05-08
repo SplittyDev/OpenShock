@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Reflection;
 
 namespace openshock
 {
@@ -12,7 +13,18 @@ namespace openshock
 	{
 		static string git;
 		static string gitdir;
-		const string MATCH_CURRENT_BRANCH = @"^\* (.*)";
+		const string MATCH_CURRENT_BRANCH	= @"^\* (.*)";
+		const string MATCH_AHEAD			= @"^\#.*origin/.*' by (\d+) commit.*";
+		const string MATCH_DELETED			= @"deleted:";
+		const string MATCH_MODIFIED			= @"modified:";
+		const string MATCH_RENAMED			= @"renamed:";
+		const string MATCH_ADDED			= @"new file:";
+		const string MATCH_UNTRACKED		= @"Untracked files:";
+		const string COLOR_BRANCH			= @"\[\033[1;30m\]";
+		const string COLOR_ADDED			= @"\[\033[0;32m\]";
+		const string COLOR_MODIFIED			= @"\[\033[0;33m\]";
+		const string COLOR_DELETED			= @"\[\033[0;31m\]";
+		const string COLOR_RESET			= @"\[\033[0m\]";
 
 		static GitIntegration () {
 			git = GetGitPath ();
@@ -23,7 +35,18 @@ namespace openshock
 				return string.Empty;
 			var accum = new StringBuilder ();
 			var branch = GetCurrentBranch ();
-			accum.AppendFormat ("{0}{1}", friendly && !string.IsNullOrEmpty (branch)? " " : string.Empty, branch);
+			bool untracked, ahead;
+			int added, modified, deleted, aheadcount;
+			GetCurrentStatus (out untracked, out ahead, out added, out modified, out deleted, out aheadcount);
+			var addspace = friendly && !string.IsNullOrEmpty (branch);
+			var space = addspace ? " " : string.Empty;
+			accum.AppendFormat ("{0}[", space);
+			accum.AppendFormat ("{0}{1}", COLOR_BRANCH, branch);
+			accum.AppendFormat ("{0} +{1}", COLOR_ADDED, added);
+			accum.AppendFormat ("{0} ~{1}", COLOR_MODIFIED, modified);
+			accum.AppendFormat ("{0} -{1}", COLOR_DELETED, deleted);
+			accum.Append (COLOR_RESET);
+			accum.Append ("]");
 			return accum.ToString ();
 		}
 
@@ -45,13 +68,42 @@ namespace openshock
 			}) ();
 		}
 
+		public static void GetCurrentStatus (out bool untracked, out bool ahead,
+			out int added, out int modified, out int deleted, out int aheadcount) {
+			untracked = false;
+			ahead = false;
+			added = 0;
+			modified = 0;
+			deleted = 0;
+			aheadcount = 0;
+			var status = GetGitStatusOutput ();
+			var branchbits = status.Split (' ');
+			var branch = branchbits.Last ();
+			var lines = status.Replace ("\r", string.Empty).Split ('\n');
+			foreach (var line in lines) {
+				var match_ahead = Regex.Match (line, MATCH_AHEAD);
+				if (match_ahead.Success) {
+					aheadcount = Convert.ToInt32 (match_ahead.Groups[1].Value);
+					ahead = true;
+				}
+				else if (Regex.IsMatch (line, MATCH_DELETED))
+					deleted++;
+				else if (Regex.IsMatch (line, MATCH_MODIFIED) || Regex.IsMatch (line, MATCH_RENAMED))
+					modified++;
+				else if (Regex.IsMatch (line, MATCH_ADDED))
+					added++;
+				else if (Regex.IsMatch (line, MATCH_UNTRACKED))
+					untracked = true;
+			}
+		}
+
 		public static string GetCurrentBranch () {
 			var branch = string.Empty;
-			var lines = GetGitBranchOutput ().Split ('\n');
+			var lines = GetGitBranchOutput ().Replace ("\r", string.Empty).Split ('\n');
 			foreach (var line in lines) {
-				Console.WriteLine ("Branch: {0}", line);
-				if (Regex.IsMatch (line, MATCH_CURRENT_BRANCH))
-					Console.WriteLine ("Success!");
+				var match = Regex.Match (line, MATCH_CURRENT_BRANCH);
+				if (match.Success)
+					branch += match.Groups[1].Value;
 			}
 			return branch;
 		}
@@ -73,7 +125,7 @@ namespace openshock
 					WorkingDirectory = gitdir,
 					UseShellExecute = false,
 					RedirectStandardOutput = true,
-					CreateNoWindow = true
+					CreateNoWindow = true,
 				};
 				try {
 					proc.Start ();
@@ -82,7 +134,7 @@ namespace openshock
 					return string.Empty;
 				}
 				while (!proc.StandardOutput.EndOfStream) {
-					accum.Append (proc.StandardOutput.ReadLine ());
+					accum.AppendLine (proc.StandardOutput.ReadLine ());
 				}
 				proc.WaitForExit (100);
 			}

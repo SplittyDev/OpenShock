@@ -5,6 +5,8 @@ namespace openshock
 	public static class Shell
 	{
 		static bool exit;
+		static Scanner scanner;
+		static Parser parser;
 
 		public delegate void SignalExit ();
 		public static event SignalExit OnExit;
@@ -13,7 +15,8 @@ namespace openshock
 			Prepare ();
 			while (!exit) {
 				Prompt.WritePrompt ();
-				ParseCommand ();
+				var cmd = Console.ReadLine ();
+				ParseCommand (cmd);
 			}
 		}
 
@@ -23,13 +26,18 @@ namespace openshock
 
 		static void Prepare () {
 			exit = false;
-			Prompt.SetPrompt (@"[\u@\h \W\[\033[0;32m\]\g\[\033[0m\]]\$ ");
+			Prompt.SetPrompt (@"\u@\h \W\g\$ ");
+			scanner = new Scanner ();
+			parser = new Parser ();
 		}
 
-		static void ParseCommand () {
-			var prompt = Console.ReadLine ();
-			if (prompt == "exit")
-				Exit ();
+		static void ParseCommand (string command) {
+			var tokens = scanner.Scan (command);
+			foreach (var token in tokens) {
+				Console.WriteLine (token);
+			}
+			parser.Prepare (tokens);
+			//var astnode = parser.Parse ();
 		}
 	}
 }

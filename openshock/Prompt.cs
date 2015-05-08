@@ -11,6 +11,7 @@ namespace openshock
 		static Dictionary<string, byte> colors;
 		public static string Text { get { return ParsePrompt (format); } }
 
+		// Shock Git	\u@\h:\whead \W\g\$
 		// RedHat		[\u@\h \W]\$ 
 		// Fedora		[\u@\h \W]\$
 		// Fedora Git	[\u@\h \W\[\033[0;32m\]\g\[\033[0m\]]\$ 
@@ -71,41 +72,63 @@ namespace openshock
 			var accum = new StringBuilder (format);
 			accum.Replace (@"\\", @"\1");
 
+			#region OpenShock Basic
+			if (format.Contains (@"\date"))
+				accum.Replace (@"\date", DateTime.Now.ToLongDateString ());
+			if (format.Contains (@"\sdate"))
+				accum.Replace (@"\sdate", DateTime.Now.ToShortDateString ());
+			if (format.Contains (@"\whead"))
+				accum.Replace (@"\whead", Windows.WorkingDirectory.Unixify ().Head ().Unixify ());
+			#endregion
+
 			#region Bash
-			accum.Replace (@"\a", "\a");
-			accum.Replace (@"\A", DateTime.Now.ToShortTimeString ());
+			if (format.Contains (@"\a"))
+				accum.Replace (@"\a", "\a");
+			if (format.Contains (@"\A"))
+				accum.Replace (@"\A", DateTime.Now.ToShortTimeString ());
 			// \d
 			// \e
-			accum.Replace (@"\h", Environment.MachineName.ToLowerInvariant ().Split ('.')[0]);
-			accum.Replace (@"\H", Environment.MachineName.ToLowerInvariant ());
+			if (format.Contains (@"\h"))
+				accum.Replace (@"\h", Environment.MachineName.ToLowerInvariant ().Split ('.')[0]);
+			if (format.Contains (@"\H"))
+				accum.Replace (@"\H", Environment.MachineName.ToLowerInvariant ());
 			// \j
 			// \l
-			accum.Replace (@"\n", "\n");
-			// \t
-			accum.Replace (@"\t", DateTime.Now.ToLongTimeString ());
+			if (format.Contains (@"\n"))
+				accum.Replace (@"\n", "\n");
+			if (format.Contains (@"\t"))
+				accum.Replace (@"\t", DateTime.Now.ToLongTimeString ());
 			// \T
-			accum.Replace (@"\r", "\r");
-			accum.Replace (@"\s", "openshock");
-			accum.Replace (@"\u", Environment.UserName.ToLowerInvariant ());
-			accum.Replace (@"\v", Assembly.GetExecutingAssembly ().GetName ().Version.ToString (2));
-			accum.Replace (@"\V", Assembly.GetExecutingAssembly ().GetName ().Version.ToString (3));
-			accum.Replace (@"\w", Windows.WorkingDirectory.Unixify ());
-			accum.Replace (@"\W", Windows.WorkingDirectory.Unixify ().Tail ().Unixify ());
+			if (format.Contains (@"\r"))
+				accum.Replace (@"\r", "\r");
+			if (format.Contains (@"\s"))
+				accum.Replace (@"\s", "shocksh");
+			if (format.Contains (@"\u"))
+				accum.Replace (@"\u", Environment.UserName.ToLowerInvariant ());
+			if (format.Contains (@"\v"))
+				accum.Replace (@"\v", Assembly.GetExecutingAssembly ().GetName ().Version.ToString (2));
+			if (format.Contains (@"\V"))
+				accum.Replace (@"\V", Assembly.GetExecutingAssembly ().GetName ().Version.ToString (3));
+			if (format.Contains (@"\w"))
+				accum.Replace (@"\w", Windows.WorkingDirectory.Unixify ());
+			if (format.Contains (@"\W"))
+				accum.Replace (@"\W", Windows.WorkingDirectory.Unixify ().Tail ().Unixify ());
 			// \!
 			// \#
-			accum.Replace (@"\$", Windows.IsAdministrator () ? "#" : "$");
+			if (format.Contains (@"\$"))
+				accum.Replace (@"\$", Windows.IsAdministrator () ? "#" : "$");
 			// \@
 			#endregion
 
-			#region OpenShock
-			accum.Replace (@"\g", GitIntegration.GeneratePrompt ());
-			accum.Replace (@"\G", GitIntegration.GeneratePrompt (false));
-			accum.Replace (@"\p", Windows.WorkingDirectory.Windowsify ());
+			#region OpenShock Fancy
+			if (format.Contains (@"\g"))
+				accum.Replace (@"\g", GitIntegration.GeneratePrompt ());
+			if (format.Contains (@"\G"))
+				accum.Replace (@"\G", GitIntegration.GeneratePrompt (false));
+			if (format.Contains (@"\p"))
+				accum.Replace (@"\p", Windows.WorkingDirectory.Windowsify ());
 			#endregion
 
-			accum.Replace (@"\date", DateTime.Now.ToLongDateString ());
-			accum.Replace (@"\sdate", DateTime.Now.ToShortDateString ());
-			accum.Replace (@"\whead", Windows.WorkingDirectory.Unixify ().Head ());
 			accum.Replace (@"\1", @"\");
 
 			return accum.ToString ();
