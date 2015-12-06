@@ -13,7 +13,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug</OutputPath>
+    <OutputPath>..\bin\Debug</OutputPath>
     <DefineConstants>DEBUG;</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -23,7 +23,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <DebugType>full</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release</OutputPath>
+    <OutputPath>..\bin\Release</OutputPath>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Externalconsole>true</Externalconsole>
@@ -31,10 +31,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="codeaddicts.libArgument">
-      <HintPath>..\packages\Codeaddicts.libArgument.0.1.5604.7101\lib\net40\codeaddicts.libArgument.dll</HintPath>
-    </Reference>
     <Reference Include="System.Core" />
+    <Reference Include="codeaddicts.libArgument">
+      <HintPath>..\packages\Codeaddicts.libArgument.0.1.5745.4423\lib\codeaddicts.libArgument.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.cs" />
@@ -47,20 +47,36 @@
     <Compile Include="Scanner.cs" />
     <Compile Include="Tokens\TK_RDIR.cs" />
     <Compile Include="Tokens\Token.cs" />
-    <Compile Include="Tokens\TK_RDIR_A.cs" />
     <Compile Include="Tokens\TK_IDENT.cs" />
     <Compile Include="Tokens\TK_PIPE.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="AST\AstNode.cs" />
     <Compile Include="AST\AstNodeType.cs" />
+    <Compile Include="Tokens\TK_OR.cs" />
+    <Compile Include="AST\AstCodeblockNode.cs" />
+    <Compile Include="TypeSwitch.cs" />
+    <Compile Include="AST\AstIdentifierNode.cs" />
+    <Compile Include="AST\AstPipeNode.cs" />
+    <Compile Include="CodeValidator\Validator.cs" />
+    <Compile Include="CodeValidator\CallContainer.cs" />
+    <Compile Include="Builtins.cs" />
+    <Compile Include="Builtins\BuiltinCd.cs" />
+    <Compile Include="Builtins\Builtin.cs" />
+    <Compile Include="Builtins\BuiltinClear.cs" />
+    <Compile Include="Builtins\BuiltinExit.cs" />
+    <Compile Include="Tokens\TK_AND.cs" />
+    <Compile Include="AST\AstAndNode.cs" />
+    <Compile Include="ShellOutput.cs" />
     <Compile Include="Command.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="Tokens\" />
     <Folder Include="AST\" />
+    <Folder Include="CodeValidator\" />
+    <Folder Include="Builtins\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>

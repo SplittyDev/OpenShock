@@ -6,6 +6,7 @@ namespace openshock
 		Command,
 		Redirection,
 		Pipe,
+		Or,
 	};
 }
 

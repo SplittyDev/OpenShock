@@ -2,7 +2,7 @@
 
 namespace openshock
 {
-	public class TK_RDIR_A : Token
+	public class TK_RDIR_IN_A : Token
 	{
 	}
 }

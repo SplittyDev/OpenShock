@@ -19,33 +19,57 @@ namespace openshock
 			if (nodes != null)
 				nodes.Clear ();
 			tokens = tokenlist;
-			pos = 0;
+			pos = -1;
 		}
 
 		public AstNode Parse () {
-			return null;
-		}
-
-		public AstNode ParseIdentifier () {
-			var command = new Command ();
-			var args = new StringBuilder ();
-			while (MatchToken<TK_IDENT> (PeekToken ())) {
-				args.Append ((PeekToken () as TK_IDENT).value);
-				NextToken ();
+			var code = new AstCodeblockNode ();
+			bool abort = false;
+			while (!abort && CanAdvance ()) {
+				TypeSwitch.On (Peek ())
+					.Case ((TK_IDENT id) => code.children.Add (ParseIdentifier ()))
+					.Case ((TK_PIPE pipe) => code.children.Add (ParsePipe ()))
+					.Case ((TK_AND and) => Read ())
+					.Default (tk => {
+						Console.Error.WriteLine ("Error: Unexpeced token type: {0}", tk.GetType ().Name);
+						abort = true;
+				});
 			}
-			return null;
+			return code;
 		}
 
-		public bool MatchToken<TMatch> (Token src) {
-			return src is TMatch;
+		AstNode ParseIdentifier () {
+			var value = Accept<TK_IDENT> ().value;
+			var accum = new StringBuilder ();
+			while (Check<TK_IDENT> ())
+				accum.AppendFormat ("{0} ", Accept<TK_IDENT> ().value);
+			var node = new AstIdentifierNode (value, accum.ToString ().Trim ());
+			return node;
 		}
 
-		public Token PeekToken (int lookahead = 1) {
-			return tokens[pos + lookahead];
+		AstNode ParsePipe () {
+			Accept<TK_PIPE> ();
+			return new AstPipeNode ();
 		}
 
-		public Token NextToken () {
-			return tokens[++pos];
+		bool CanAdvance (int n = 1) {
+			return tokens.Count > pos + n;
+		}
+
+		Token Peek (int n = 1) {
+			return CanAdvance () ? tokens [pos + n] : null;
+		}
+
+		Token Read () {
+			return CanAdvance () ? tokens [++pos] : null;
+		}
+
+		bool Check<TMatch> () where TMatch : Token {
+			return Peek () is TMatch;
+		}
+
+		TMatch Accept<TMatch> () where TMatch : Token {
+			return (TMatch)Read ();
 		}
 	}
 }

@@ -11,11 +11,13 @@ namespace openshock
 		int pos;
 		List<Token> tokens;
 
-		public Scanner () {
+		public Scanner ()
+		{
 			tokens = new List<Token> ();
 		}
 
-		public List<Token> Scan (string command) {
+		public List<Token> Scan (string command)
+		{
 			if (tokens != null)
 				tokens.Clear ();
 			src = command;
@@ -23,37 +25,68 @@ namespace openshock
 			while (Peek () != -1) {
 				while (Peek () != -1 && char.IsWhiteSpace ((char)Peek ()))
 					pos++;
-				switch ((char)Peek ()) {
-					case '>':
-						Next ();
-						ScanRedirection ();
-						break;
-					case '|':
-						Next ();
-						ScanPipe ();
-						break;
-					default:
-						ScanIdent ();
-						break;
+				switch (Peek ()) {
+				case '<':
+					Next ();
+					ScanRedirectionIn ();
+					break;
+				case '>':
+					Next ();
+					ScanRedirectionOut ();
+					break;
+				case '|':
+					Next ();
+					ScanPipe ();
+					break;
+				case '&':
+					Next ();
+					ScanAnd ();
+					break;
+				default:
+					ScanIdent ();
+					break;
 				}
 			}
 			return tokens;
 		}
 
-		public void ScanRedirection () {
+		public void ScanRedirectionIn ()
+		{
 			if (Peek () == '>') {
 				Next ();
-				tokens.Add (Token.Create<TK_RDIR_A> ());
-			}
-			else
-				tokens.Add (Token.Create<TK_RDIR> ());
+				tokens.Add (Token.Create<TK_RDIR_IN_A> ());
+			} else
+				tokens.Add (Token.Create<TK_RDIR_IN> ());
 		}
 
-		public void ScanPipe () {
-			tokens.Add (Token.Create<TK_PIPE> ());
+		public void ScanRedirectionOut ()
+		{
+			if (Peek () == '>') {
+				Next ();
+				tokens.Add (Token.Create<TK_RDIR_OUT_A> ());
+			} else
+				tokens.Add (Token.Create<TK_RDIR_OUT> ());
 		}
 
-		public void ScanIdent () {
+		public void ScanPipe ()
+		{
+			if (Peek () == '|') {
+				Next ();
+				tokens.Add (Token.Create<TK_OR> ());
+			} else
+				tokens.Add (Token.Create<TK_PIPE> ());
+		}
+
+		public void ScanAnd () {
+			if (Peek () == '&') {
+				Next ();
+				tokens.Add (Token.Create<TK_AND> ());
+			} else
+				Console.Error.WriteLine ("Error: Unexpected symbol: '&'");
+		}
+
+		public void ScanIdent ()
+		{
 			var accum = new StringBuilder ();
 			int c = Next ();
 			while (c != -1 && !char.IsWhiteSpace ((char)c)) {
@@ -63,12 +96,14 @@ namespace openshock
 			tokens.Add (Token.Create<TK_IDENT> (accum.ToString ()));
 		}
 
-		public int Next () {
-			return Peek () != -1 ? src[++pos] : -1;
+		public int Next ()
+		{
+			return Peek () != -1 ? src [++pos] : -1;
 		}
 
-		public int Peek (int lookahead = 1) {
-			return src.Length > (pos + lookahead) ? src[pos + lookahead] : -1;
+		public int Peek (int lookahead = 1)
+		{
+			return src.Length > (pos + lookahead) ? src [pos + lookahead] : -1;
 		}
 	}
 }
